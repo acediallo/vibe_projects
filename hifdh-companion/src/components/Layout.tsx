@@ -1,8 +1,9 @@
 import { Outlet, NavLink } from 'react-router-dom'
-import { BookOpen, CalendarCheck, BarChart3, User } from 'lucide-react'
+import { Home, BookOpen, CalendarCheck, BarChart3, User } from 'lucide-react'
 
 const navItems = [
-  { to: '/', icon: BookOpen, label: 'Quran' },
+  { to: '/', icon: Home, label: 'Home' },
+  { to: '/quran', icon: BookOpen, label: 'Quran' },
   { to: '/review', icon: CalendarCheck, label: 'Review' },
   { to: '/progress', icon: BarChart3, label: 'Progress' },
   { to: '/profile', icon: User, label: 'Profile' },

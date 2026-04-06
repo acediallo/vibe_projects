@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { BookOpen, CalendarCheck } from 'lucide-react'
 
 export default function HomePage() {
@@ -25,7 +26,7 @@ export default function HomePage() {
 
       {/* Action Cards */}
       <div className="space-y-3">
-        <a href="/review" className="card flex items-center gap-4 hover:border-teal-300 transition-colors">
+        <Link to="/review" className="card flex items-center gap-4 hover:border-teal-300 transition-colors">
           <div className="bg-teal-100 text-teal-700 p-3 rounded-xl">
             <CalendarCheck size={24} />
           </div>
@@ -33,9 +34,9 @@ export default function HomePage() {
             <h3 className="font-semibold text-gray-900">Start Review</h3>
             <p className="text-sm text-gray-500">Review your memorized verses</p>
           </div>
-        </a>
+        </Link>
 
-        <a href="/quran" className="card flex items-center gap-4 hover:border-teal-300 transition-colors">
+        <Link to="/quran" className="card flex items-center gap-4 hover:border-teal-300 transition-colors">
           <div className="bg-emerald-100 text-emerald-700 p-3 rounded-xl">
             <BookOpen size={24} />
           </div>
@@ -43,7 +44,7 @@ export default function HomePage() {
             <h3 className="font-semibold text-gray-900">Add Verses</h3>
             <p className="text-sm text-gray-500">Mark new verses as memorized</p>
           </div>
-        </a>
+        </Link>
       </div>
 
       {/* Streak */}
