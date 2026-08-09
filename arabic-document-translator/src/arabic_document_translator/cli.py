@@ -47,7 +47,11 @@ def build_parser() -> argparse.ArgumentParser:
     p_init.add_argument("project_dir", type=Path)
     p_init.add_argument(
         "--model", default=DEFAULT_MODEL,
-        help=f"Claude model to use (default: {DEFAULT_MODEL})",
+        help=(
+            "Model spec, format 'provider:model_id'. Providers: anthropic, "
+            "openai, openai-compatible, google. Bare names auto-route by "
+            f"prefix (claude-*, gpt-*, gemini-*). Default: {DEFAULT_MODEL}"
+        ),
     )
     p_init.add_argument(
         "--chunk-words", type=int, default=DEFAULT_CHUNK_WORDS,

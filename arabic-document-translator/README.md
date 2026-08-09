@@ -1,9 +1,10 @@
 # Arabic Document Translator
 
 A Python CLI that translates long Arabic documents (100+ pages) into English
-using the Claude API — chunk by chunk, resumably, with a shared glossary
-and style guide that keep terminology and tone consistent across the whole
-document.
+using an LLM of your choice — Anthropic Claude, OpenAI, Google Gemini, or any
+OpenAI-compatible endpoint (OpenRouter, Together, local vLLM/Ollama, …).
+Runs chunk by chunk, resumably, with a shared glossary and style guide that
+keep terminology and tone consistent across the whole document.
 
 ## Why this exists
 
@@ -26,16 +27,24 @@ wasted the first 59. This tool solves those three problems:
 ## Requirements
 
 - Python 3.9+
-- `ANTHROPIC_API_KEY` in your environment (only needed for `run` and `qa`
-  — `init`, `status`, `assemble`, and `glossary` work offline)
+- An API key for whichever provider you plan to use (only needed for `run`
+  and `qa` — `init`, `status`, `assemble`, and `glossary` work offline).
+  See "Choosing a model provider" below.
 
 ## Install
+
+The base install ships with the Anthropic SDK (the default model is Claude).
+Add extras to enable other providers:
 
 ```bash
 cd arabic-document-translator
 python -m venv .venv
 source .venv/bin/activate
-pip install -e ".[dev]"
+
+pip install -e ".[dev]"              # base — Anthropic only
+pip install -e ".[dev,openai]"       # + OpenAI SDK
+pip install -e ".[dev,google]"       # + Google Gemini SDK
+pip install -e ".[dev,all]"          # every provider
 ```
 
 Verify the install:
@@ -44,6 +53,45 @@ Verify the install:
 arabic-translate --version
 # → arabic-translate 0.1.0
 ```
+
+## Choosing a model provider
+
+Model spec format is `provider:model_id`. Bare model names auto-route by
+prefix, so existing `--model claude-sonnet-5` still works.
+
+| Provider           | Example `--model`                             | Env var(s)                                            |
+| ------------------ | --------------------------------------------- | ----------------------------------------------------- |
+| Anthropic          | `anthropic:claude-sonnet-5` or `claude-sonnet-5` | `ANTHROPIC_API_KEY`                                   |
+| OpenAI             | `openai:gpt-4o` or `gpt-4o`                   | `OPENAI_API_KEY`                                      |
+| Google Gemini      | `google:gemini-2.0-flash-exp` or `gemini-2.0-flash-exp` | `GEMINI_API_KEY` (or `GOOGLE_API_KEY`)      |
+| OpenAI-compatible  | `openai-compatible:llama-3.1-70b`             | `OPENAI_COMPATIBLE_BASE_URL` + `OPENAI_COMPATIBLE_API_KEY` |
+
+Examples:
+
+```bash
+# Default — Claude via Anthropic
+arabic-translate init source.docx ./p
+
+# OpenAI GPT-4o
+arabic-translate init source.docx ./p --model openai:gpt-4o
+
+# Google Gemini
+arabic-translate init source.docx ./p --model google:gemini-2.0-flash-exp
+
+# OpenRouter (OpenAI-compatible endpoint)
+export OPENAI_COMPATIBLE_BASE_URL=https://openrouter.ai/api/v1
+export OPENAI_COMPATIBLE_API_KEY=sk-or-...
+arabic-translate init source.docx ./p \
+  --model openai-compatible:anthropic/claude-3.5-sonnet
+
+# Local Ollama
+export OPENAI_COMPATIBLE_BASE_URL=http://localhost:11434/v1
+arabic-translate init source.docx ./p \
+  --model openai-compatible:llama3.1:70b
+```
+
+The chosen model is persisted in `manifest.json`, so subsequent `run` and
+`qa` commands use the same provider automatically.
 
 ## Supported input formats
 

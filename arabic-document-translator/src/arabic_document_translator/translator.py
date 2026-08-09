@@ -1,5 +1,10 @@
-"""Claude API client wrapper: translate a chunk, extract new terms, draft a
-style guide, run QA."""
+"""Provider-agnostic translation calls: translate a chunk, extract new
+terms, draft a style guide, run QA.
+
+Every function accepts an optional ``client: LLMClient``. If omitted, a
+client is constructed from ``model`` via the provider factory. Tests
+inject a fake ``LLMClient`` so no network is required.
+"""
 
 from __future__ import annotations
 
@@ -10,35 +15,25 @@ from typing import Optional
 
 from . import prompts
 from .config import DEFAULT_MAX_RETRIES
+from .providers import LLMClient, LLMError, get_client
 
 
 class TranslatorError(RuntimeError):
     pass
 
 
-def _get_client():
+def _resolve_client(model: str, client: Optional[LLMClient]) -> LLMClient:
+    if client is not None:
+        return client
     try:
-        from anthropic import Anthropic
-    except ImportError as e:  # pragma: no cover - depends on install
-        raise TranslatorError(
-            "anthropic package not installed. Run: pip install anthropic"
-        ) from e
-    return Anthropic()
-
-
-def _extract_text(response) -> str:
-    parts = []
-    for block in response.content:
-        text = getattr(block, "text", None)
-        if text:
-            parts.append(text)
-    return "".join(parts).strip()
+        return get_client(model)
+    except LLMError as e:
+        raise TranslatorError(str(e)) from e
 
 
 def _call_with_retry(
-    client,
+    client: LLMClient,
     *,
-    model: str,
     system: str,
     user: str,
     max_tokens: int,
@@ -47,13 +42,7 @@ def _call_with_retry(
     last_exc: Optional[Exception] = None
     for attempt in range(1, max_retries + 1):
         try:
-            resp = client.messages.create(
-                model=model,
-                max_tokens=max_tokens,
-                system=system,
-                messages=[{"role": "user", "content": user}],
-            )
-            return _extract_text(resp)
+            return client.complete(system=system, user=user, max_tokens=max_tokens)
         except Exception as e:  # network, rate-limit, server errors
             last_exc = e
             if attempt == max_retries:
@@ -70,9 +59,9 @@ def translate_chunk(
     prev_english_tail: str,
     arabic_source: str,
     max_retries: int = DEFAULT_MAX_RETRIES,
-    client=None,
+    client: Optional[LLMClient] = None,
 ) -> str:
-    client = client or _get_client()
+    client = _resolve_client(model, client)
     user = prompts.build_translation_user_prompt(
         style_guide=style_guide,
         glossary_block=glossary_block,
@@ -81,7 +70,6 @@ def translate_chunk(
     )
     return _call_with_retry(
         client,
-        model=model,
         system=prompts.TRANSLATION_SYSTEM,
         user=user,
         max_tokens=8192,
@@ -111,9 +99,9 @@ def extract_new_terms(
     english_translation: str,
     existing_terms_block: str,
     max_retries: int = DEFAULT_MAX_RETRIES,
-    client=None,
+    client: Optional[LLMClient] = None,
 ) -> list[dict]:
-    client = client or _get_client()
+    client = _resolve_client(model, client)
     user = prompts.build_glossary_extraction_prompt(
         arabic_source=arabic_source,
         english_translation=english_translation,
@@ -121,7 +109,6 @@ def extract_new_terms(
     )
     raw = _call_with_retry(
         client,
-        model=model,
         system=prompts.GLOSSARY_EXTRACTION_SYSTEM,
         user=user,
         max_tokens=2048,
@@ -146,12 +133,11 @@ def draft_style_guide(
     model: str,
     sample_arabic: str,
     max_retries: int = DEFAULT_MAX_RETRIES,
-    client=None,
+    client: Optional[LLMClient] = None,
 ) -> str:
-    client = client or _get_client()
+    client = _resolve_client(model, client)
     return _call_with_retry(
         client,
-        model=model,
         system=prompts.STYLE_GUIDE_BOOTSTRAP_SYSTEM,
         user=prompts.build_style_guide_prompt(sample_arabic),
         max_tokens=1024,
@@ -165,12 +151,11 @@ def qa_review(
     assembled_english: str,
     glossary_block: str,
     max_retries: int = DEFAULT_MAX_RETRIES,
-    client=None,
+    client: Optional[LLMClient] = None,
 ) -> dict:
-    client = client or _get_client()
+    client = _resolve_client(model, client)
     raw = _call_with_retry(
         client,
-        model=model,
         system=prompts.QA_SYSTEM,
         user=prompts.build_qa_prompt(assembled_english, glossary_block),
         max_tokens=4096,
