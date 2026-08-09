@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "arabic-document-translator"
+version = "0.2.0"
+description = "A Python CLI tool for translating Arabic documents to English via LLMs (Anthropic, OpenAI, Google), with a resumable, chunk-based pipeline."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [{ name = "acediallo" }]
+keywords = ["arabic", "translation", "cli", "claude", "openai", "gemini", "llm", "documents"]
+# Base install ships with the Anthropic SDK because the default model is Claude.
+# Install extras below to enable other providers.
+dependencies = [
+    "anthropic>=0.40.0",
+    "python-docx>=1.1.0",
+]
+
+[project.optional-dependencies]
+openai = ["openai>=1.40.0"]
+google = ["google-genai>=0.3.0"]
+all = [
+    "openai>=1.40.0",
+    "google-genai>=0.3.0",
+]
+dev = [
+    "pytest>=7.0",
+]
+
+[project.scripts]
+arabic-translate = "arabic_document_translator.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
