@@ -5,13 +5,16 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "arabic-document-translator"
 version = "0.1.0"
-description = "A Python CLI tool for translating documents to and from Arabic."
+description = "A Python CLI tool for translating Arabic documents to English via the Claude API, with a resumable, chunk-based pipeline."
 readme = "README.md"
 requires-python = ">=3.9"
 license = { text = "MIT" }
 authors = [{ name = "acediallo" }]
-keywords = ["arabic", "translation", "cli", "documents"]
-dependencies = []
+keywords = ["arabic", "translation", "cli", "claude", "anthropic", "documents"]
+dependencies = [
+    "anthropic>=0.40.0",
+    "python-docx>=1.1.0",
+]
 
 [project.optional-dependencies]
 dev = [
