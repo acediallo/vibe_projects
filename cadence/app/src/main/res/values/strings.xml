@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Cadence</string>
+    <string name="checkin_channel_name">Check-ins</string>
+    <string name="checkin_channel_desc">Periodic prompts asking what you are doing</string>
+    <string name="checkin_title">What are you doing right now?</string>
+    <string name="checkin_text">Tap a category to log this moment.</string>
+</resources>
