@@ -1,5 +1,26 @@
+# Local credentials - NEVER commit
 .env
+.env.*
+!.env.example
+*.env
+secrets.*
+credentials.*
+
+# Runtime state (Zoho -> Odoo id map). Not secret but not worth versioning.
+state.json
+state.*.json
+
+# Python
 .venv/
+venv/
 __pycache__/
 *.pyc
-state.json
+*.pyo
+
+# Streamlit
+.streamlit/secrets.toml
+
+# Editor
+.vscode/
+.idea/
+.DS_Store

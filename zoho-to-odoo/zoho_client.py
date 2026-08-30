@@ -65,7 +65,10 @@ class ZohoInvoiceClient:
         r.raise_for_status()
         data = r.json()
         if "access_token" not in data:
-            raise RuntimeError(f"Zoho token refresh failed: {data}")
+            # Do NOT include the response body: it can echo the request.
+            raise RuntimeError(
+                f"Zoho token refresh failed (error={data.get('error', 'unknown')})"
+            )
         self._token = data["access_token"]
         # Refresh a minute before it actually expires
         self._token_expires_at = time.time() + int(data.get("expires_in", 3600)) - 60
